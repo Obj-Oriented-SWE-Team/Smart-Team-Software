@@ -1,0 +1,1101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SmartTeam — Intelligent Team Formation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Epilogue:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<style>
+/* ── TOKENS ─────────────────────────────── */
+:root {
+  --white:   #ffffff;
+  --off:     #f7f6f3;
+  --paper:   #f0ede8;
+  --ink:     #0f1623;
+  --ink2:    #3a4256;
+  --ink3:    #7a8399;
+  --rule:    #e4e2dc;
+  --rule2:   #ccc9c1;
+  --navy:    #1a2e52;
+  --navy2:   #243d6e;
+  --gold:    #c8922a;
+  --gold-bg: #fdf4e7;
+  --green:   #1a6644;
+  --green-bg:#ebf5f0;
+  --red:     #b83232;
+  --red-bg:  #fdf0f0;
+  --r:       6px;
+  --r-lg:    10px;
+  --shadow:  0 1px 3px rgba(15,22,35,0.07), 0 4px 16px rgba(15,22,35,0.05);
+  --shadow-lg: 0 2px 8px rgba(15,22,35,0.08), 0 16px 48px rgba(15,22,35,0.10);
+  font-family: 'Epilogue', system-ui, sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--off);
+  color: var(--ink);
+  min-height: 100vh;
+  line-height: 1.6;
+  font-size: 15px;
+  font-weight: 400;
+}
+
+/* ── ANIMATIONS ──────────────────────────── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes slideRight {
+  from { opacity: 0; transform: translateX(-10px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+.anim-fadeUp  { animation: fadeUp  0.45s cubic-bezier(.22,.68,0,1.1) both; }
+.anim-fadeIn  { animation: fadeIn  0.35s ease both; }
+.anim-slide   { animation: slideRight 0.35s ease both; }
+
+.delay-1 { animation-delay: .06s; }
+.delay-2 { animation-delay: .12s; }
+.delay-3 { animation-delay: .18s; }
+.delay-4 { animation-delay: .24s; }
+.delay-5 { animation-delay: .30s; }
+
+/* ── NAV ─────────────────────────────────── */
+.nav {
+  background: var(--white);
+  border-bottom: 1px solid var(--rule);
+  height: 62px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 2.5rem;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+.nav-mark {
+  width: 32px; height: 32px;
+  background: var(--navy);
+  border-radius: 4px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--white);
+  font-family: 'Playfair Display', serif;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+.nav-wordmark {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--ink);
+  letter-spacing: -0.02em;
+}
+.nav-wordmark span { color: var(--navy); }
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.nav-chip {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink2);
+  background: var(--off);
+  border: 1px solid var(--rule);
+  border-radius: 20px;
+  padding: 4px 12px;
+  letter-spacing: 0.01em;
+}
+.btn-nav {
+  background: transparent;
+  border: 1px solid var(--rule2);
+  color: var(--ink3);
+  border-radius: var(--r);
+  padding: 6px 14px;
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all .15s;
+  font-weight: 500;
+}
+.btn-nav:hover { border-color: var(--ink2); color: var(--ink); }
+
+/* ── LAYOUT ──────────────────────────────── */
+.main { max-width: 820px; margin: 0 auto; padding: 3rem 2rem 6rem; }
+.view { display: none; }
+.view.active { display: block; }
+
+/* ── TYPOGRAPHY ──────────────────────────── */
+.display {
+  font-family: 'Playfair Display', serif;
+  font-size: 2.4rem;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 1.1;
+  color: var(--ink);
+}
+.display-sm {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.6rem;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+  color: var(--ink);
+}
+.eyebrow {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink3);
+}
+.lead { color: var(--ink2); font-size: 15px; font-weight: 300; margin-top: 6px; }
+
+/* ── DIVIDER ─────────────────────────────── */
+hr { border: none; border-top: 1px solid var(--rule); margin: 2rem 0; }
+
+/* ── CARDS ───────────────────────────────── */
+.card {
+  background: var(--white);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-lg);
+  padding: 1.75rem;
+  box-shadow: var(--shadow);
+  margin-bottom: 1rem;
+}
+.card-flat {
+  background: var(--white);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  margin-bottom: 1rem;
+  box-shadow: var(--shadow);
+}
+
+/* Project row */
+.proj-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.1rem 1.5rem;
+  border-bottom: 1px solid var(--rule);
+  transition: background .12s;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+.proj-row:last-child { border-bottom: none; }
+.proj-row:hover { background: var(--off); }
+.proj-title { font-weight: 600; font-size: 14px; }
+.proj-meta { font-size: 12px; color: var(--ink3); margin-top: 2px; font-family: 'Epilogue', monospace; }
+
+/* ── PILLS ───────────────────────────────── */
+.pill {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 9px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+.pill-navy   { background: #e8edf6; color: var(--navy); }
+.pill-green  { background: var(--green-bg); color: var(--green); }
+.pill-red    { background: var(--red-bg); color: var(--red); }
+.pill-gold   { background: var(--gold-bg); color: var(--gold); }
+.pill-gray   { background: var(--off); color: var(--ink3); border: 1px solid var(--rule); }
+
+/* ── STATUS DOT ──────────────────────────── */
+.dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+.dot-green { background: var(--green); }
+.dot-gold  { background: var(--gold); }
+.dot-gray  { background: var(--ink3); opacity: .4; }
+
+/* ── BUTTONS ─────────────────────────────── */
+.btn {
+  display: inline-flex; align-items: center; gap: 7px;
+  cursor: pointer; border: none;
+  border-radius: var(--r);
+  padding: 9px 18px;
+  font-size: 13.5px; font-weight: 600;
+  font-family: inherit;
+  transition: all .15s;
+  text-decoration: none;
+  letter-spacing: 0.01em;
+}
+.btn-primary {
+  background: var(--navy);
+  color: var(--white);
+  box-shadow: 0 1px 3px rgba(26,46,82,0.22);
+}
+.btn-primary:hover { background: var(--navy2); transform: translateY(-1px); box-shadow: 0 3px 10px rgba(26,46,82,0.25); }
+.btn-ghost {
+  background: var(--white);
+  color: var(--ink2);
+  border: 1px solid var(--rule2);
+}
+.btn-ghost:hover { border-color: var(--ink3); color: var(--ink); }
+.btn-sm { padding: 6px 13px; font-size: 12.5px; }
+
+/* ── FORMS ───────────────────────────────── */
+.field { margin-bottom: 1.25rem; }
+.field > label {
+  display: block;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--ink3);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.field input[type="text"],
+.field input[type="number"],
+.field textarea,
+.field select {
+  width: 100%;
+  background: var(--white);
+  border: 1px solid var(--rule2);
+  border-radius: var(--r);
+  color: var(--ink);
+  padding: 9px 13px;
+  font-size: 14px;
+  font-family: inherit;
+  font-weight: 400;
+  transition: border-color .15s, box-shadow .15s;
+  outline: none;
+}
+.field input:focus, .field textarea:focus, .field select:focus {
+  border-color: var(--navy);
+  box-shadow: 0 0 0 3px rgba(26,46,82,0.1);
+}
+.field textarea { resize: vertical; min-height: 96px; line-height: 1.6; }
+.field-hint { font-size: 12px; color: var(--ink3); margin-top: 5px; }
+
+/* ── ROLE SELECTOR ───────────────────────── */
+.role-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.role-opt {
+  border: 1.5px solid var(--rule2);
+  border-radius: var(--r-lg);
+  padding: 16px 18px;
+  cursor: pointer;
+  transition: all .15s;
+  background: var(--white);
+  display: flex; align-items: flex-start; gap: 12px;
+}
+.role-opt:hover { border-color: var(--navy); background: #f5f7fb; }
+.role-opt.selected { border-color: var(--navy); background: #f0f4fa; }
+.role-opt-icon {
+  width: 36px; height: 36px;
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+.role-opt-icon.blue { background: #e8edf6; }
+.role-opt-icon.slate { background: var(--off); }
+.role-opt-label { font-weight: 600; font-size: 14px; color: var(--ink); }
+.role-opt-desc  { font-size: 12px; color: var(--ink3); margin-top: 2px; font-weight: 300; }
+
+/* ── MESSAGES ────────────────────────────── */
+.msg {
+  display: none;
+  padding: 10px 14px;
+  border-radius: var(--r);
+  font-size: 13px;
+  font-weight: 500;
+  margin-top: 0.75rem;
+  border-left: 3px solid;
+}
+.msg.show { display: block; }
+.msg-ok   { background: var(--green-bg); border-color: var(--green); color: var(--green); }
+.msg-err  { background: var(--red-bg);   border-color: var(--red);   color: var(--red); }
+.msg-info { background: #e8edf6;         border-color: var(--navy);  color: var(--navy); }
+
+/* ── TRAITS ──────────────────────────────── */
+.trait-grid { display: flex; flex-direction: column; gap: 16px; }
+.trait-row {
+  display: grid;
+  grid-template-columns: 190px 1fr 42px;
+  align-items: center;
+  gap: 14px;
+}
+.trait-label { font-size: 13px; font-weight: 500; color: var(--ink2); }
+.trait-desc  { font-size: 11px; color: var(--ink3); margin-top: 1px; font-weight: 300; }
+.trait-val {
+  font-size: 13px; font-weight: 600;
+  color: var(--navy); text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+input[type="range"] {
+  -webkit-appearance: none;
+  width: 100%; height: 20px;
+  background: transparent; cursor: pointer;
+}
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 3px;
+  background: var(--rule2);
+  border-radius: 3px;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px; height: 16px;
+  background: var(--navy);
+  border-radius: 50%;
+  margin-top: -6.5px;
+  border: 2.5px solid var(--white);
+  box-shadow: 0 1px 4px rgba(26,46,82,0.3);
+  transition: transform .1s;
+}
+input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.15); }
+
+/* ── SKILLS ──────────────────────────────── */
+.skill-grid { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 0.5rem; }
+.skill-chip {
+  padding: 6px 13px;
+  border-radius: 4px;
+  border: 1px solid var(--rule2);
+  background: var(--white);
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all .13s;
+  color: var(--ink2);
+  user-select: none;
+  display: flex; align-items: center; gap: 6px;
+}
+.skill-chip:hover { border-color: var(--navy); color: var(--navy); }
+.skill-chip.active { background: #e8edf6; border-color: var(--navy); color: var(--navy); }
+.skill-chip .ck {
+  width: 13px; height: 13px;
+  border: 1.5px solid currentColor;
+  border-radius: 3px;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 8px;
+}
+.skill-chip.active .ck::after { content: '✓'; }
+
+/* ── TEAM RESULTS ────────────────────────── */
+.team-block {
+  background: var(--white);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  margin-bottom: 1.25rem;
+  box-shadow: var(--shadow);
+}
+.team-header {
+  padding: 1.1rem 1.5rem;
+  background: var(--navy);
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 8px;
+}
+.team-header-name {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--white);
+  letter-spacing: -0.02em;
+}
+.team-score-wrap { display: flex; align-items: baseline; gap: 5px; }
+.team-score { font-size: 1.5rem; font-weight: 700; color: var(--white); font-variant-numeric: tabular-nums; }
+.team-score-label { font-size: 11px; color: rgba(255,255,255,0.55); letter-spacing: 0.08em; text-transform: uppercase; }
+.team-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  border-bottom: 1px solid var(--rule);
+}
+.team-stat {
+  padding: 0.85rem 1.25rem;
+  border-right: 1px solid var(--rule);
+  font-size: 12px;
+}
+.team-stat:last-child { border-right: none; }
+.team-stat-label { color: var(--ink3); font-weight: 500; margin-bottom: 2px; text-transform: uppercase; font-size: 10px; letter-spacing: 0.08em; }
+.team-stat-val { font-weight: 600; font-size: 14px; color: var(--ink); }
+
+.member-row {
+  display: flex; align-items: flex-start; gap: 13px;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--rule);
+  transition: background .1s;
+}
+.member-row:last-child { border-bottom: none; }
+.member-row:hover { background: var(--off); }
+.member-av {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: #e8edf6;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700; color: var(--navy);
+  flex-shrink: 0;
+  font-family: 'Epilogue', sans-serif;
+  border: 1.5px solid rgba(26,46,82,0.12);
+}
+.member-name { font-weight: 600; font-size: 14px; color: var(--ink); }
+.member-expl { font-size: 12px; color: var(--ink3); margin-top: 3px; font-weight: 300; }
+.member-tasks { font-size: 12px; color: var(--ink2); margin-top: 4px; }
+
+/* ── ENROLL ──────────────────────────────── */
+.enroll-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; }
+.enroll-row .field { flex: 1; min-width: 220px; margin: 0; }
+.enrolled-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+
+/* ── EMPTY STATE ─────────────────────────── */
+.empty {
+  text-align: center;
+  padding: 3rem 1.5rem;
+  background: var(--white);
+  border: 1px dashed var(--rule2);
+  border-radius: var(--r-lg);
+  color: var(--ink3);
+}
+.empty-icon { font-size: 2rem; margin-bottom: 0.75rem; opacity: 0.6; }
+.empty p { font-size: 13px; font-weight: 300; }
+
+/* ── LOGIN ───────────────────────────────── */
+.login-wrap {
+  min-height: calc(100vh - 62px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 2rem;
+  background: var(--off);
+}
+.login-card {
+  background: var(--white);
+  border: 1px solid var(--rule);
+  border-radius: 16px;
+  padding: 2.75rem;
+  width: 100%; max-width: 460px;
+  box-shadow: var(--shadow-lg);
+  animation: fadeUp .5s cubic-bezier(.22,.68,0,1.1) both;
+}
+.login-badge {
+  display: inline-flex; align-items: center; gap: 7px;
+  background: #e8edf6;
+  border: 1px solid rgba(26,46,82,0.12);
+  border-radius: 20px;
+  padding: 5px 12px;
+  font-size: 11.5px;
+  color: var(--navy);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  margin-bottom: 1.5rem;
+}
+.login-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.9rem;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  color: var(--ink);
+  margin-bottom: 4px;
+}
+.login-sub { color: var(--ink3); font-size: 14px; margin-bottom: 2rem; font-weight: 300; }
+
+/* ── SECTION ─────────────────────────────── */
+.section-row {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;
+}
+
+/* ── RESPONSIVE ──────────────────────────── */
+@media (max-width: 560px) {
+  .trait-row { grid-template-columns: 1fr; }
+  .role-grid { grid-template-columns: 1fr; }
+  .team-stats { grid-template-columns: 1fr 1fr; }
+  .display { font-size: 1.8rem; }
+}
+
+.hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-brand">
+    <div class="nav-mark">ST</div>
+    <div class="nav-wordmark">Smart<span>Team</span></div>
+  </div>
+  <div class="nav-right" id="nav-right" style="display:none">
+    <span class="nav-chip" id="nav-chip"></span>
+    <button class="btn-nav" id="btn-signout">Sign out</button>
+  </div>
+</nav>
+
+<!-- ════ LOGIN ════ -->
+<div id="view-login" class="view active">
+  <div class="login-wrap">
+    <div class="login-card">
+      <div class="login-badge">
+        <div style="width:7px;height:7px;border-radius:50%;background:var(--navy)"></div>
+        AI-Driven Team Formation
+      </div>
+      <div class="login-title">Welcome back.</div>
+      <div class="login-sub">Sign in to manage teams or complete your assessment.</div>
+      <div class="field">
+        <label>Display name</label>
+        <input type="text" id="login-name" placeholder="e.g. Jana Ibrahim" maxlength="64" />
+      </div>
+      <div class="field">
+        <label>I am a</label>
+        <div class="role-grid" id="role-group">
+          <div class="role-opt selected" data-value="manager">
+            <div class="role-opt-icon blue">🏗</div>
+            <div>
+              <div class="role-opt-label">Manager</div>
+              <div class="role-opt-desc">Create projects &amp; form teams</div>
+            </div>
+          </div>
+          <div class="role-opt" data-value="member">
+            <div class="role-opt-icon slate">👤</div>
+            <div>
+              <div class="role-opt-label">Member</div>
+              <div class="role-opt-desc">Take assessment &amp; join projects</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <button class="btn btn-primary" style="width:100%;justify-content:center;padding:11px" id="btn-login">Continue →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════ MANAGER HOME ════ -->
+<div id="view-manager" class="view">
+  <div class="main">
+    <div class="anim-fadeUp" style="margin-bottom:2.5rem">
+      <div class="eyebrow" style="margin-bottom:10px">Manager workspace</div>
+      <div class="display" id="mgr-greeting">Good morning.</div>
+      <div class="lead">Review your projects and form optimal teams below.</div>
+    </div>
+    <div class="section-row anim-fadeUp delay-1">
+      <div class="eyebrow">Your projects</div>
+      <button class="btn btn-primary btn-sm" id="btn-new-project">+ New project</button>
+    </div>
+    <div id="manager-project-list" class="anim-fadeUp delay-2"></div>
+  </div>
+</div>
+
+<!-- ════ PROJECT FORM ════ -->
+<div id="view-project-form" class="view">
+  <div class="main">
+    <button class="btn btn-ghost btn-sm anim-fadeIn" id="pf-cancel" style="margin-bottom:1.75rem">← Back</button>
+    <div class="eyebrow anim-fadeUp" style="margin-bottom:10px">Projects</div>
+    <div class="display-sm anim-fadeUp delay-1" id="project-form-title">New project</div>
+    <div class="lead anim-fadeUp delay-2" style="margin-bottom:2rem">Configure project requirements and team parameters.</div>
+    <div class="card anim-fadeUp delay-2">
+      <div class="field">
+        <label>Project name</label>
+        <input type="text" id="pf-name" placeholder="e.g. E-Commerce Platform Redesign" maxlength="120" />
+      </div>
+      <div class="field">
+        <label>Members per team</label>
+        <input type="number" id="pf-team-size" min="2" max="12" value="3" style="max-width:120px" />
+      </div>
+      <div class="field">
+        <label>Project tasks</label>
+        <textarea id="pf-tasks" placeholder="One task per line&#10;e.g. Implement REST API&#10;Write unit tests&#10;Design UI components"></textarea>
+        <div class="field-hint">Each task will be distributed among team members.</div>
+      </div>
+      <div class="field">
+        <label>Required skills</label>
+        <input type="text" id="pf-skills" placeholder="JavaScript, Testing / QA, Design / UX" />
+        <div class="field-hint">Comma-separated. Used to measure skill coverage when forming teams.</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:1rem" class="anim-fadeUp delay-3">
+      <button class="btn btn-primary" id="pf-save">Save project</button>
+      <button class="btn btn-ghost" id="pf-cancel2">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════ PROJECT DETAIL ════ -->
+<div id="view-project-detail" class="view">
+  <div class="main">
+    <button class="btn btn-ghost btn-sm anim-fadeIn" id="btn-back-list" style="margin-bottom:1.75rem">← All projects</button>
+    <div class="eyebrow anim-fadeUp" style="margin-bottom:10px">Project detail</div>
+    <div class="display-sm anim-fadeUp delay-1" id="pd-title">Project</div>
+    <div class="lead anim-fadeUp delay-2" id="pd-meta" style="margin-bottom:2rem"></div>
+
+    <div class="card anim-fadeUp delay-2" style="margin-bottom:1.25rem">
+      <div class="eyebrow" style="margin-bottom:1rem">Enroll members</div>
+      <p style="font-size:13px;color:var(--ink3);margin-bottom:1rem;font-weight:300">Members must complete the assessment to be eligible for enrollment.</p>
+      <div class="enroll-row">
+        <div class="field" style="flex:1;min-width:220px;margin:0">
+          <select id="enroll-select"><option value="">Select a member…</option></select>
+        </div>
+        <button class="btn btn-primary btn-sm" id="btn-enroll" style="padding:9px 18px">Enroll</button>
+      </div>
+      <div id="enrolled-list"></div>
+    </div>
+
+    <div class="card anim-fadeUp delay-3">
+      <div class="eyebrow" style="margin-bottom:1rem">Team formation</div>
+      <p style="font-size:13px;color:var(--ink3);margin-bottom:1.25rem;font-weight:300">The algorithm balances personality traits, skill coverage, and experience to form the optimal teams.</p>
+      <button class="btn btn-primary" id="btn-generate">⚡ Generate teams</button>
+      <div id="generate-msg" class="msg"></div>
+    </div>
+
+    <div id="pd-results" style="margin-top:1.5rem"></div>
+  </div>
+</div>
+
+<!-- ════ MEMBER HOME ════ -->
+<div id="view-member" class="view">
+  <div class="main">
+    <div style="margin-bottom:2.5rem" class="anim-fadeUp">
+      <div class="eyebrow" style="margin-bottom:10px">Member workspace</div>
+      <div class="display" id="mem-greeting">Hello.</div>
+      <div class="lead">Complete your assessment and join a project below.</div>
+    </div>
+
+    <div id="member-assessment-status" class="msg" style="margin-bottom:1.5rem"></div>
+
+    <div class="card anim-fadeUp delay-1" style="margin-bottom:1.25rem">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem">
+        <div>
+          <div class="eyebrow" style="margin-bottom:4px">Personality &amp; Skills Assessment</div>
+          <div style="font-size:13px;color:var(--ink3);font-weight:300">Your profile determines team compatibility scores.</div>
+        </div>
+        <button class="btn btn-primary btn-sm" id="btn-assessment">Take assessment</button>
+      </div>
+    </div>
+
+    <div class="card anim-fadeUp delay-2" style="margin-bottom:1.75rem">
+      <div class="eyebrow" style="margin-bottom:1rem">Join a project</div>
+      <p style="font-size:13px;color:var(--ink3);margin-bottom:1rem;font-weight:300">Enter the project ID provided by your instructor or manager.</p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <input type="text" id="join-project-id" placeholder="proj_…" style="flex:1;min-width:200px;background:var(--white);border:1px solid var(--rule2);border-radius:var(--r);color:var(--ink);padding:9px 13px;font-size:14px;font-family:inherit;outline:none;transition:border-color .15s" onfocus="this.style.borderColor='var(--navy)'" onblur="this.style.borderColor='var(--rule2)'" />
+        <button class="btn btn-primary" id="btn-join">Enroll</button>
+      </div>
+      <div id="join-msg" class="msg"></div>
+    </div>
+
+    <div class="section-row anim-fadeUp delay-3">
+      <div class="eyebrow">My enrollments</div>
+    </div>
+    <div id="member-enrollments" class="anim-fadeUp delay-4"></div>
+  </div>
+</div>
+
+<!-- ════ ASSESSMENT ════ -->
+<div id="view-assessment" class="view">
+  <div class="main">
+    <button class="btn btn-ghost btn-sm anim-fadeIn" id="btn-cancel-assessment" style="margin-bottom:1.75rem">← Back</button>
+    <div class="eyebrow anim-fadeUp" style="margin-bottom:10px">Assessment</div>
+    <div class="display-sm anim-fadeUp delay-1">Personality &amp; Skills Profile</div>
+    <div class="lead anim-fadeUp delay-2" style="margin-bottom:2rem">Your responses shape how SmartTeam matches you with collaborators. Be honest for best results.</div>
+
+    <div class="card anim-fadeUp delay-2" style="margin-bottom:1rem">
+      <div class="eyebrow" style="margin-bottom:0.3rem">Big Five Personality Traits</div>
+      <p style="font-size:12.5px;color:var(--ink3);margin-bottom:1.5rem;font-weight:300">Rate each trait from 0 (very low) to 100 (very high) based on your honest self-assessment.</p>
+      <div class="trait-grid" id="trait-sliders"></div>
+    </div>
+
+    <div class="card anim-fadeUp delay-3" style="margin-bottom:1rem">
+      <div class="eyebrow" style="margin-bottom:0.3rem">Technical Skills</div>
+      <p style="font-size:12.5px;color:var(--ink3);margin-bottom:1rem;font-weight:300">Select all areas you have working knowledge in.</p>
+      <div class="skill-grid" id="skill-checks"></div>
+    </div>
+
+    <div class="card anim-fadeUp delay-4" style="margin-bottom:1.75rem">
+      <div class="eyebrow" style="margin-bottom:0.75rem">Experience</div>
+      <div class="field" style="margin:0">
+        <label>Years of professional experience</label>
+        <input type="number" id="exp-years" min="0" max="20" step="0.5" value="1" style="max-width:140px" />
+      </div>
+    </div>
+
+    <div style="display:flex;gap:10px" class="anim-fadeUp delay-5">
+      <button class="btn btn-primary" id="btn-save-assessment">Save assessment</button>
+      <button class="btn btn-ghost" id="btn-cancel-assessment2">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════ MEMBER TEAM VIEW ════ -->
+<div id="view-member-dash" class="view">
+  <div class="main">
+    <button class="btn btn-ghost btn-sm anim-fadeIn" id="btn-member-dash-back" style="margin-bottom:1.75rem">← Back</button>
+    <div class="eyebrow anim-fadeUp" style="margin-bottom:10px">My team</div>
+    <div class="display-sm anim-fadeUp delay-1" style="margin-bottom:0.4rem">Your assignment</div>
+    <div class="lead anim-fadeUp delay-2" style="margin-bottom:2rem">Review your team composition, assigned role, and tasks.</div>
+    <div id="member-dash-content" class="anim-fadeUp delay-2"></div>
+  </div>
+</div>
+
+<script>
+/* ── STORAGE ─────────────────────────────── */
+const LS = {
+  get(k,d) { try { const v=localStorage.getItem(k); return v?JSON.parse(v):d; } catch{return d;} },
+  set(k,v) { try { localStorage.setItem(k,JSON.stringify(v)); } catch{} }
+};
+const uid = p => `${p}_${Date.now().toString(36)}${Math.random().toString(36).slice(2,6)}`;
+const getUsers       = () => LS.get('st_users',[]);
+const setUsers       = v  => LS.set('st_users',v);
+const getProjects    = () => LS.get('st_projects',[]);
+const setProjects    = v  => LS.set('st_projects',v);
+const getAssessments = () => LS.get('st_assessments',[]);
+const setAssessments = v  => LS.set('st_assessments',v);
+const getSession     = () => LS.get('st_session',null);
+const setSession     = v  => LS.set('st_session',v);
+const findUser       = id => getUsers().find(u=>u.id===id);
+const findAssessment = id => getAssessments().find(a=>a.userId===id);
+
+/* ── TEAM LOGIC ──────────────────────────── */
+const ROLE_KEYS = ['Leader','Developer','Tester','Analyst'];
+const SKILLS_OPTIONS = ['JavaScript','Python','Testing / QA','Design / UX','DevOps','Documentation','Analysis','Project management'];
+const TRAIT_LABELS = [
+  {key:'O',label:'Openness',desc:'Curiosity, creativity, imagination'},
+  {key:'C',label:'Conscientiousness',desc:'Organization, diligence, reliability'},
+  {key:'E',label:'Extraversion',desc:'Sociability, assertiveness, energy'},
+  {key:'A',label:'Agreeableness',desc:'Cooperation, trust, empathy'},
+  {key:'N',label:'Neuroticism',desc:'Emotional reactivity, anxiety'}
+];
+
+function mean(arr,k){return arr.reduce((s,p)=>s+p.traits[k],0)/arr.length;}
+function variance(arr,k){const mu=mean(arr,k),n=arr.length;if(n<=1)return 0;return arr.reduce((s,p)=>{const d=p.traits[k]-mu;return s+d*d;},0)/n;}
+function skillCov(profiles,req){if(!req.length)return 1;const h=new Set(profiles.flatMap(p=>p.skills.map(s=>s.toLowerCase())));return req.filter(r=>h.has(r.toLowerCase().trim())).length/req.length;}
+function expScore(profiles){return Math.min(1,profiles.reduce((s,p)=>s+(p.experience||0),0)/profiles.length/10);}
+function teamScore(profiles,req){const s=skillCov(profiles,req);const p=Math.min(1,['O','C','E','A','N'].reduce((t,k)=>t+variance(profiles,k),0)/5/800);const e=expScore(profiles);return 0.45*s+0.35*p+0.20*e;}
+function compatScore(profiles,req){const base=teamScore(profiles,req)*100;const pen=['O','C','E','A','N'].reduce((t,k)=>{const v=variance(profiles,k);return t+(v<120?120-v:0);},0)/50;return Math.max(0,Math.round((base-pen)*10)/10);}
+function roleFit(profile,role){const {O,C,E,A,N}=profile.traits;const sk=profile.skills.map(s=>s.toLowerCase());switch(role){case 'Leader':return 0.35*E+0.35*C+0.2*A-0.1*N;case 'Developer':return(sk.some(s=>s.includes('java')||s.includes('python'))?25:0)+0.2*C+0.15*O;case 'Tester':return(sk.some(s=>s.includes('test')||s.includes('qa'))?25:0)+0.25*C+0.15*A;case 'Analyst':return(sk.some(s=>s.includes('anal')||s.includes('design'))?20:0)+0.3*O+0.2*C;default:return 50;}}
+function assignRoles(members){const roles=[...ROLE_KEYS],pool=[...members],out=[];while(roles.length&&pool.length){let best=-Infinity,bP=null,bR=null;for(const m of pool)for(const r of roles){const f=roleFit(m,r);if(f>best){best=f;bP=m;bR=r;}}if(!bP)break;out.push({profile:bP,role:bR});roles.splice(roles.indexOf(bR),1);pool.splice(pool.indexOf(bP),1);}for(const m of pool)out.push({profile:m,role:'Contributor'});return out;}
+function shuffle(a){const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]];}return b;}
+function explainRole(profile,role){const {O,C,E}=profile.traits,bits=[];if(role==='Leader'&&E>60)bits.push('high extraversion supports team coordination');if(role==='Developer'&&C>65)bits.push('conscientiousness aligns with delivery focus');if(role==='Tester'&&C>60)bits.push('detail orientation supports quality assurance');if(role==='Analyst'&&O>60)bits.push('openness enables exploration and insight');if(!bits.length)bits.push('best available fit given team constraints');return bits.join('; ');}
+function delayRisk(cov,comp){if(cov<0.5)return{label:'High',cls:'pill-red'};if(comp<40)return{label:'Medium',cls:'pill-gold'};if(comp<60)return{label:'Low – Medium',cls:'pill-gold'};return{label:'Low',cls:'pill-green'};}
+function generateTeams(profiles,teamSize,tasks,req){if(teamSize<2)throw new Error('Team size must be ≥ 2');const n=profiles.length;if(n<teamSize)throw new Error('Not enough enrolled members');let best=null,bestSum=-Infinity;for(let a=0;a<40;a++){const sh=shuffle(profiles),teams=[];for(let i=0;i<sh.length;i+=teamSize){const c=sh.slice(i,i+teamSize);if(c.length===teamSize)teams.push(c);}if(!teams.length)continue;let sum=teams.reduce((s,t)=>s+teamScore(t,req),0);if(n%teamSize>0)sum-=(n%teamSize)*10;if(sum>bestSum){bestSum=sum;best=teams;}}if(!best)throw new Error('Could not partition teams');return best.map((profiles,idx)=>{const ra=assignRoles(profiles);const taskB=tasks.length?ra.map((_,i)=>tasks.filter((_,j)=>j%ra.length===i)):ra.map(()=>[]);const cov=skillCov(profiles,req);const comp=compatScore(profiles,req);const dr=delayRisk(cov,comp);const pred=Math.min(95,Math.round(comp*0.65+(cov*100)*0.35));return{id:`team_${idx+1}`,name:`Team ${idx+1}`,compatibilityScore:comp,skillCoverage:Math.round(cov*1000)/10,delayRisk:dr,predictedPerf:pred,members:ra.map((r,i)=>({userId:r.profile.userId,name:r.profile.name,role:r.role,tasks:taskB[i]||[],explanation:explainRole(r.profile,r.role)}))};});}
+
+/* ── UI HELPERS ──────────────────────────── */
+const $  = id => document.getElementById(id);
+const esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const ini = name => name.trim().split(/\s+/).map(w=>w[0]).join('').toUpperCase().slice(0,2);
+
+function showMsg(id,text,type='info'){const el=$(id);el.textContent=text;el.className=`msg msg-${type} show`;}
+function hideMsg(id){const el=$(id);el.className='msg';}
+function showView(id){document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));$(id).classList.add('active');window.scrollTo(0,0);}
+
+/* Role selector */
+document.querySelectorAll('#role-group .role-opt').forEach(opt=>{
+  opt.addEventListener('click',()=>{
+    document.querySelectorAll('#role-group .role-opt').forEach(o=>o.classList.remove('selected'));
+    opt.classList.add('selected');
+  });
+});
+
+/* ── RENDER: TRAIT SLIDERS ───────────────── */
+function renderTraitSliders(){
+  const box=$('trait-sliders'); box.innerHTML='';
+  TRAIT_LABELS.forEach(({key,label,desc})=>{
+    const row=document.createElement('div'); row.className='trait-row';
+    row.innerHTML=`
+      <div><div class="trait-label">${label}</div><div class="trait-desc">${desc}</div></div>
+      <input type="range" min="0" max="100" value="50" data-trait="${key}" />
+      <div class="trait-val" id="tv_${key}">50</div>`;
+    row.querySelector('input').addEventListener('input',e=>{$(`tv_${key}`).textContent=e.target.value;});
+    box.appendChild(row);
+  });
+}
+
+/* ── RENDER: SKILL CHIPS ─────────────────── */
+function renderSkillChecks(){
+  const box=$('skill-checks'); box.innerHTML='';
+  SKILLS_OPTIONS.forEach(skill=>{
+    const chip=document.createElement('div'); chip.className='skill-chip'; chip.dataset.value=skill;
+    chip.innerHTML=`<span class="ck"></span>${skill}`;
+    chip.addEventListener('click',()=>chip.classList.toggle('active'));
+    box.appendChild(chip);
+  });
+}
+
+function readAssessment(){
+  const traits={};
+  document.querySelectorAll('#trait-sliders input[data-trait]').forEach(inp=>{traits[inp.dataset.trait]=Number(inp.value);});
+  const skills=[...document.querySelectorAll('#skill-checks .skill-chip.active')].map(c=>c.dataset.value);
+  return{traits,skills,experience:Number($('exp-years').value)||0};
+}
+function fillAssessment(a){
+  if(!a)return;
+  TRAIT_LABELS.forEach(({key})=>{
+    const inp=document.querySelector(`#trait-sliders input[data-trait="${key}"]`);
+    if(inp){inp.value=a.traits[key];$(`tv_${key}`).textContent=a.traits[key];}
+  });
+  document.querySelectorAll('#skill-checks .skill-chip').forEach(c=>{c.classList.toggle('active',a.skills.includes(c.dataset.value));});
+  $('exp-years').value=a.experience??0;
+}
+function upsertAssessment(userId,data,completed){
+  const list=getAssessments(); const i=list.findIndex(x=>x.userId===userId);
+  const row={userId,...data,completed,updatedAt:new Date().toISOString()};
+  if(i>=0)list[i]=row; else list.push(row); setAssessments(list);
+}
+
+/* ── AUTH ────────────────────────────────── */
+function currentUser(){const s=getSession();return s?.userId?findUser(s.userId):null;}
+function login(name,role){
+  const n=(name||'').trim(); if(!n){alert('Please enter a display name.');return;}
+  let users=getUsers(); let u=users.find(u=>u.name.toLowerCase()===n.toLowerCase()&&u.role===role);
+  if(!u){u={id:uid('user'),name:n,role};users.push(u);setUsers(users);}
+  setSession({userId:u.id}); refreshUI();
+}
+function logout(){setSession(null);refreshNav();showView('view-login');}
+function refreshNav(){
+  const u=currentUser();
+  if(u){$('nav-right').style.display='flex';$('nav-chip').textContent=`${u.name} · ${u.role}`;}
+  else $('nav-right').style.display='none';
+}
+
+/* ── MANAGER ─────────────────────────────── */
+function showManagerHome(){
+  const u=currentUser();
+  $('mgr-greeting').textContent=`Good work, ${u.name}.`;
+  renderManagerProjects(); showView('view-manager');
+}
+function renderManagerProjects(){
+  const u=currentUser(); const list=$('manager-project-list');
+  const projects=getProjects().filter(p=>p.managerId===u.id);
+  if(!projects.length){list.innerHTML=`<div class="empty"><div class="empty-icon">📋</div><p>No projects yet — create one to get started.</p></div>`;return;}
+  const wrap=document.createElement('div'); wrap.className='card-flat';
+  projects.forEach((p,i)=>{
+    const row=document.createElement('div'); row.className='proj-row';
+    row.style.animationDelay=`${i*0.05}s`;
+    const hasTeams=p.teams?.length>0;
+    row.innerHTML=`
+      <div>
+        <div class="proj-title">${esc(p.name)}</div>
+        <div class="proj-meta">ID: ${esc(p.id)} &nbsp;·&nbsp; ${p.memberIds?.length||0} enrolled &nbsp;·&nbsp; ${p.teamSize} per team</div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <span class="pill ${hasTeams?'pill-green':'pill-gray'}"><span class="dot ${hasTeams?'dot-green':'dot-gray'}"></span>${hasTeams?'Teams formed':'Pending'}</span>
+        <button class="btn btn-ghost btn-sm" data-pid="${p.id}">Open →</button>
+      </div>`;
+    row.querySelector('button').addEventListener('click',()=>openProjectDetail(p.id));
+    wrap.appendChild(row);
+  });
+  list.innerHTML=''; list.appendChild(wrap);
+}
+
+let editingPid=null;
+function openProjectForm(existing){
+  editingPid=existing?.id||null;
+  $('project-form-title').textContent=existing?'Edit project':'New project';
+  $('pf-name').value=existing?.name||'';
+  $('pf-team-size').value=existing?.teamSize||3;
+  $('pf-tasks').value=(existing?.tasks||[]).join('\n');
+  $('pf-skills').value=(existing?.requiredSkills||[]).join(', ');
+  showView('view-project-form');
+}
+function saveProjectForm(){
+  const name=$('pf-name').value.trim();
+  const teamSize=Number($('pf-team-size').value);
+  const tasks=$('pf-tasks').value.split(/\r?\n/).map(t=>t.trim()).filter(Boolean);
+  const requiredSkills=$('pf-skills').value.split(/[,;]+/).map(s=>s.trim()).filter(Boolean);
+  if(!name){alert('Project name required.');return;}
+  if(teamSize<2){alert('Team size must be ≥ 2.');return;}
+  let projects=getProjects();
+  if(editingPid){projects=projects.map(p=>p.id===editingPid?{...p,name,teamSize,tasks,requiredSkills}:p);}
+  else{projects.push({id:uid('proj'),name,managerId:currentUser().id,teamSize,tasks,requiredSkills,memberIds:[],teams:null,finalizedAt:null});}
+  setProjects(projects); editingPid=null; showManagerHome();
+}
+
+let detailPid=null;
+function openProjectDetail(pid){
+  detailPid=pid;
+  const p=getProjects().find(x=>x.id===pid); if(!p)return;
+  $('pd-title').textContent=p.name;
+  $('pd-meta').textContent=`${p.memberIds.length} member${p.memberIds.length!==1?'s':''} enrolled · ${p.teamSize} per team · ID: ${p.id}`;
+  hideMsg('generate-msg'); renderEnrollUI(p); renderTeamResults(p); showView('view-project-detail');
+}
+function renderEnrollUI(p){
+  const eligible=getUsers().filter(u=>u.role==='member'&&findAssessment(u.id)?.completed);
+  const sel=$('enroll-select'); sel.innerHTML='<option value="">Select a member…</option>';
+  eligible.forEach(u=>{const already=p.memberIds.includes(u.id);const opt=document.createElement('option');opt.value=u.id;opt.textContent=`${u.name}${already?' (enrolled)':''}`;if(already)opt.disabled=true;sel.appendChild(opt);});
+  const el=$('enrolled-list'); el.innerHTML='';
+  if(p.memberIds.length){
+    const label=document.createElement('div'); label.style.cssText='font-size:11.5px;color:var(--ink3);margin-top:12px;margin-bottom:7px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase';label.textContent='Currently enrolled';
+    const chips=document.createElement('div'); chips.className='enrolled-chips';
+    p.memberIds.forEach(id=>{const u=findUser(id);if(!u)return;const chip=document.createElement('span');chip.className='pill pill-navy';chip.textContent=u.name;chips.appendChild(chip);});
+    el.appendChild(label); el.appendChild(chips);
+  }
+}
+function enrollMember(pid,memberId){
+  let projects=getProjects(); const p=projects.find(x=>x.id===pid); if(!p)return;
+  if(p.memberIds.includes(memberId)){alert('Already enrolled.');return;}
+  if(!findAssessment(memberId)?.completed){alert('Assessment not complete.');return;}
+  p.memberIds=[...p.memberIds,memberId]; setProjects(projects); openProjectDetail(pid);
+}
+function runGenerate(){
+  const projects=getProjects(); const p=projects.find(x=>x.id===detailPid); if(!p)return;
+  const profiles=p.memberIds.map(id=>{const u=findUser(id),a=findAssessment(id);return{userId:id,name:u?.name||id,traits:a.traits,skills:a.skills||[],experience:a.experience??0};});
+  if(p.memberIds.some(id=>!findAssessment(id)?.completed)){showMsg('generate-msg','Some members have not completed their assessment.','err');return;}
+  if(profiles.length<p.teamSize){showMsg('generate-msg',`Need at least ${p.teamSize} enrolled members. Currently: ${profiles.length}.`,'err');return;}
+  if(profiles.length%p.teamSize!==0){showMsg('generate-msg',`Total members (${profiles.length}) must be divisible by team size (${p.teamSize}).`,'err');return;}
+  try{
+    const teams=generateTeams(profiles,p.teamSize,p.tasks,p.requiredSkills||[]);
+    const idx=projects.findIndex(x=>x.id===p.id);
+    projects[idx]={...p,teams,finalizedAt:new Date().toISOString()};
+    setProjects(projects);
+    showMsg('generate-msg',`${teams.length} team${teams.length!==1?'s':''} generated successfully.`,'ok');
+    renderTeamResults(projects[idx]);
+  }catch(e){showMsg('generate-msg',e.message||String(e),'err');}
+}
+function renderTeamResults(project){
+  const wrap=$('pd-results'); wrap.innerHTML=''; if(!project.teams?.length)return;
+  const roleColors={Leader:'pill-navy',Developer:'pill-green',Tester:'pill-gold',Analyst:'pill-navy',Contributor:'pill-gray'};
+  project.teams.forEach((t,ti)=>{
+    const block=document.createElement('div'); block.className='team-block';
+    block.style.animationDelay=`${ti*0.08}s`;
+    block.innerHTML=`
+      <div class="team-header">
+        <div class="team-header-name">${esc(t.name)}</div>
+        <div class="team-score-wrap">
+          <span class="team-score">${t.compatibilityScore}</span>
+          <span class="team-score-label">compatibility</span>
+        </div>
+      </div>
+      <div class="team-stats">
+        <div class="team-stat"><div class="team-stat-label">Skill coverage</div><div class="team-stat-val">${t.skillCoverage}%</div></div>
+        <div class="team-stat"><div class="team-stat-label">Delay risk</div><div class="team-stat-val"><span class="pill ${t.delayRisk.cls}">${esc(t.delayRisk.label)}</span></div></div>
+        <div class="team-stat"><div class="team-stat-label">Perf. index</div><div class="team-stat-val">${t.predictedPerf}</div></div>
+      </div>`;
+    t.members.forEach(m=>{
+      const row=document.createElement('div'); row.className='member-row';
+      row.innerHTML=`
+        <div class="member-av">${esc(ini(m.name))}</div>
+        <div style="flex:1">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            <span class="member-name">${esc(m.name)}</span>
+            <span class="pill ${roleColors[m.role]||'pill-gray'}">${esc(m.role)}</span>
+          </div>
+          <div class="member-expl">${esc(m.explanation)}</div>
+          ${m.tasks.length?`<div class="member-tasks" style="margin-top:4px"><span style="font-size:10.5px;text-transform:uppercase;letter-spacing:0.07em;color:var(--ink3);font-weight:600">Tasks</span> <span style="color:var(--ink2)">${m.tasks.map(esc).join(' · ')}</span></div>`:''}
+        </div>`;
+      block.appendChild(row);
+    });
+    wrap.appendChild(block);
+  });
+}
+
+/* ── MEMBER ──────────────────────────────── */
+function showMemberHome(){
+  const u=currentUser(); $('mem-greeting').textContent=`Hello, ${u.name}.`;
+  const a=findAssessment(u.id);
+  if(a?.completed){showMsg('member-assessment-status','Assessment complete — you are eligible to enroll in projects.','ok');}
+  else{showMsg('member-assessment-status','Assessment incomplete — finish it before joining a project.','err');}
+  renderMemberEnrollments(); showView('view-member');
+}
+function renderMemberEnrollments(){
+  const u=currentUser(); const wrap=$('member-enrollments'); wrap.innerHTML='';
+  const enrolled=getProjects().filter(p=>p.memberIds.includes(u.id));
+  if(!enrolled.length){wrap.innerHTML=`<div class="empty"><div class="empty-icon">🔗</div><p>You haven't joined any projects yet.</p></div>`;return;}
+  const card=document.createElement('div'); card.className='card-flat';
+  enrolled.forEach(p=>{
+    const hasTeams=p.teams?.length>0;
+    const myTeam=hasTeams?p.teams.find(t=>t.members.some(m=>m.userId===u.id)):null;
+    const row=document.createElement('div'); row.className='proj-row';
+    row.innerHTML=`
+      <div>
+        <div class="proj-title">${esc(p.name)}</div>
+        <div class="proj-meta">${esc(p.id)}${myTeam?` · ${esc(myTeam.name)}`:''}`;
+    row.innerHTML+=`</div><div style="display:flex;gap:8px;align-items:center">
+      ${hasTeams?`<span class="pill pill-green"><span class="dot dot-green"></span>Teams ready</span><button class="btn btn-ghost btn-sm" data-pid="${p.id}">View team →</button>`:`<span class="pill pill-gray"><span class="dot dot-gray"></span>Awaiting formation</span>`}
+    </div>`;
+    if(hasTeams)row.querySelector('button').addEventListener('click',()=>showMemberTeam(p.id));
+    card.appendChild(row);
+  });
+  wrap.appendChild(card);
+}
+function showMemberTeam(pid){
+  const u=currentUser(); const p=getProjects().find(x=>x.id===pid); if(!p?.teams)return;
+  const myTeam=p.teams.find(t=>t.members.some(m=>m.userId===u.id));
+  const box=$('member-dash-content');
+  if(!myTeam){box.innerHTML='<p style="color:var(--ink3)">Not assigned to a team yet.</p>';showView('view-member-dash');return;}
+  const me=myTeam.members.find(m=>m.userId===u.id);
+  const roleColors={Leader:'pill-navy',Developer:'pill-green',Tester:'pill-gold',Analyst:'pill-navy',Contributor:'pill-gray'};
+  box.innerHTML=`
+    <div class="team-block">
+      <div class="team-header">
+        <div class="team-header-name">${esc(myTeam.name)}</div>
+        <div class="team-score-wrap"><span class="team-score">${myTeam.compatibilityScore}</span><span class="team-score-label">compatibility</span></div>
+      </div>
+      <div class="team-stats">
+        <div class="team-stat"><div class="team-stat-label">Your role</div><div class="team-stat-val"><span class="pill ${roleColors[me?.role]||'pill-gray'}">${esc(me?.role)}</span></div></div>
+        <div class="team-stat"><div class="team-stat-label">Skill coverage</div><div class="team-stat-val">${myTeam.skillCoverage}%</div></div>
+        <div class="team-stat"><div class="team-stat-label">Delay risk</div><div class="team-stat-val"><span class="pill ${myTeam.delayRisk.cls}">${esc(myTeam.delayRisk.label)}</span></div></div>
+      </div>
+      <div style="padding:1rem 1.5rem;border-bottom:1px solid var(--rule);background:var(--off)">
+        <div style="font-size:10.5px;text-transform:uppercase;letter-spacing:0.09em;color:var(--ink3);font-weight:600;margin-bottom:5px">Role rationale</div>
+        <div style="font-size:14px;color:var(--ink2);font-weight:300">${esc(me?.explanation||'')}</div>
+        ${me?.tasks?.length?`<div style="margin-top:8px;font-size:12px"><span style="font-size:10.5px;text-transform:uppercase;letter-spacing:0.07em;color:var(--ink3);font-weight:600">Tasks</span> <span style="color:var(--ink2)">${me.tasks.map(esc).join(' · ')}</span></div>`:''}
+      </div>
+      ${myTeam.members.map(m=>`
+        <div class="member-row">
+          <div class="member-av" style="${m.userId===u.id?'border-color:var(--navy);background:#e8edf6;color:var(--navy);border-width:2px':''}">${esc(ini(m.name))}</div>
+          <div style="flex:1">
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+              <span class="member-name">${esc(m.name)}${m.userId===u.id?' <span style="font-size:11px;color:var(--ink3);font-weight:400">(you)</span>':''}</span>
+              <span class="pill ${roleColors[m.role]||'pill-gray'}">${esc(m.role)}</span>
+            </div>
+            <div class="member-expl">${esc(m.explanation)}</div>
+          </div>
+        </div>`).join('')}
+    </div>`;
+  showView('view-member-dash');
+}
+
+/* ── REFRESH ─────────────────────────────── */
+function refreshUI(){
+  refreshNav(); const u=currentUser();
+  if(!u){showView('view-login');return;}
+  if(u.role==='manager')showManagerHome(); else showMemberHome();
+}
+
+/* ── EVENTS ──────────────────────────────── */
+$('btn-login').addEventListener('click',()=>{
+  const name=$('login-name').value;
+  const role=document.querySelector('#role-group .role-opt.selected')?.dataset.value||'manager';
+  login(name,role);
+});
+$('login-name').addEventListener('keydown',e=>{if(e.key==='Enter')$('btn-login').click();});
+$('btn-signout').addEventListener('click',logout);
+$('btn-new-project').addEventListener('click',()=>openProjectForm(null));
+$('pf-save').addEventListener('click',saveProjectForm);
+$('pf-cancel').addEventListener('click',()=>refreshUI());
+$('pf-cancel2').addEventListener('click',()=>refreshUI());
+$('btn-back-list').addEventListener('click',showManagerHome);
+$('btn-enroll').addEventListener('click',()=>{const id=$('enroll-select').value;if(!id)return;enrollMember(detailPid,id);});
+$('btn-generate').addEventListener('click',runGenerate);
+$('btn-assessment').addEventListener('click',()=>{fillAssessment(findAssessment(currentUser().id));showView('view-assessment');});
+$('btn-save-assessment').addEventListener('click',()=>{upsertAssessment(currentUser().id,readAssessment(),true);showMemberHome();});
+$('btn-cancel-assessment').addEventListener('click',()=>refreshUI());
+$('btn-cancel-assessment2').addEventListener('click',()=>refreshUI());
+$('btn-join').addEventListener('click',()=>{
+  const raw=$('join-project-id').value.trim();
+  const u=currentUser(),a=findAssessment(u.id);
+  if(!a?.completed){showMsg('join-msg','Complete your assessment first.','err');return;}
+  const projects=getProjects(); const p=projects.find(x=>x.id===raw);
+  if(!p){showMsg('join-msg','Project ID not found.','err');return;}
+  if(p.memberIds.includes(u.id)){showMsg('join-msg','Already enrolled in this project.','info');return;}
+  p.memberIds=[...p.memberIds,u.id]; setProjects(projects.map(x=>x.id===p.id?p:x));
+  showMsg('join-msg','Enrolled successfully.','ok');
+  $('join-project-id').value=''; renderMemberEnrollments();
+});
+$('btn-member-dash-back').addEventListener('click',showMemberHome);
+
+/* ── INIT ────────────────────────────────── */
+renderTraitSliders();
+renderSkillChecks();
+refreshUI();
+</script>
+</body>
+</html>

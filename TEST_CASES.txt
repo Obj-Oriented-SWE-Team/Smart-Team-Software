@@ -1,0 +1,71 @@
+Smart Team Compatibility Prototype — Manual test cases
+=======================================================
+
+How to run the prototype
+------------------------
+From this folder, start a local static server (pick any free port; 9090 avoids conflict if 8080 is in use):
+
+  python3 -m http.server 9090
+
+Then open http://localhost:9090 in Chrome/Firefox/Safari/Edge.
+
+Clear prior demo data: DevTools → Application → Local Storage → delete keys starting with stc_proto_v1_ (or use different browser profiles).
+
+
+Test Case 1 — All assessments completed; teams generated (REQ-10, REQ-12, REQ-14–20)
+------------------------------------------------------------------------------------
+Goal: 6 members, all complete assessment, team size 3 → 2 teams with roles, tasks, compatibility.
+
+Steps:
+1. Log in as Member "Alice" → Assessment → set sliders/skills → Save. Repeat for "Bob", "Carol", "Dan", "Eve", "Frank" (sign out between members or use separate browser windows).
+2. Log in as Manager "Prof" → Create project "Course Project", team size 3, enter tasks (one per line), optional required skills.
+3. Open project → Add each of the 6 members from the dropdown (only members with completed assessment appear).
+4. Click "Generate teams".
+
+Expected:
+- Success message; two teams shown.
+- Each member appears in exactly one team.
+- Each member has a role (Leader, Developer, Tester, Analyst, or Contributor if team > 4 roles), task list, and short explanation.
+- Team cards show compatibility score, skill coverage %, delay risk, predicted performance index.
+
+
+Test Case 2 — Incomplete assessment blocks formation (REQ / activity diagram)
+-------------------------------------------------------------------------------
+Goal: At least one enrolled member has not completed assessment → error, no teams.
+
+Steps:
+1. Log in as Member "Grace" → do NOT open assessment (or open it but do not save).
+2. Manager creates/opens a project and adds "Grace" from dropdown only if she appears — if incomplete assessment, she should not appear in dropdown. To force the scenario: complete assessment for everyone first, enroll one extra user, then use DevTools to set assessments for that user to completed:false OR temporarily mark incomplete by deleting assessment row in localStorage (advanced). Simpler path: enroll only members who completed assessment — then remove one member's completion:
+   - Member completes assessment, manager enrolls them, then before generate, open DevTools Application → Local Storage → find stc_proto_v1_assessments → edit JSON to set that user's completed to false.
+3. Manager clicks "Generate teams".
+
+Expected:
+- Red error message: "One or more members did not complete the assessment. Cannot generate teams until everyone completes it."
+- No team cards rendered.
+
+
+Test Case 3 — Duplicate enrollment / assignment prevention (BR-3)
+------------------------------------------------------------------
+Goal: Same person cannot be enrolled twice in the same project; partition prevents two teams for same user.
+
+Steps:
+1. Member completes assessment; manager enrolls them once.
+2. Try "Add to project" again for the same member (if UI allows selecting another — the option should be disabled as "already enrolled"; if manager adds via duplicate click, alert should fire).
+
+Expected:
+- Alert: "This member is already enrolled in this project (duplicate enrollment blocked)."
+3. After successful generation, verify under each team that each userId appears at most once across teams (visual inspection).
+
+Screenshots for submission
+--------------------------
+For each test case: capture browser showing inputs (login, assessment, project form, enrollment) and outputs (error message or team dashboard with scores).
+
+
+Video demo checklist (functional requirements touchpoints)
+---------------------------------------------------------
+- Authentication / role selection (manager vs member).
+- Assessment (Big Five + skills + experience).
+- Create project (name, team size, tasks, required skills).
+- Generate teams with precondition check (all assessments done).
+- Results: roles, explanations, task distribution, compatibility, risk, prediction.
+- Member dashboard: view my team after generation.
